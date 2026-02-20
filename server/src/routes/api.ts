@@ -2,6 +2,11 @@ import { Router, type Request, type Response } from "express";
 import { Athlete, Activity } from "../models/index.js";
 import { getDashboardData } from "../services/aggregationService.js";
 import { syncAthleteActivities } from "../services/syncService.js";
+import {
+  getRecoveryStatus,
+  getBalanceScore,
+} from "../services/recoveryService.js";
+import { getAIFeedback } from "../services/feedbackService.js";
 
 const router = Router();
 
@@ -103,6 +108,110 @@ router.post("/sync", requireAuth, async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Sync error:", error);
     res.status(500).json({ error: "Sync failed" });
+  }
+});
+
+/**
+ * GET /api/recovery
+ * Returns current recovery status based on recent activity intensity
+ */
+router.get("/recovery", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const athlete = (req as any).athlete;
+    const data = await getRecoveryStatus(athlete);
+
+    // Get last activity for additional info
+    const lastActivity = await Activity.findOne({
+      stravaAthleteId: athlete.stravaId,
+    }).sort({ startDate: -1 });
+
+    // Transform to expected frontend format
+    res.json({
+      status: data.status,
+      message: data.description,
+      lastActivity: lastActivity
+        ? {
+            name: lastActivity.name,
+            date: lastActivity.startDate.toISOString(),
+            type: lastActivity.type,
+            zone4_5Percentage: data.lastActivityIntensity?.zone4_5Percent || 0,
+            avgHeartrate: lastActivity.averageHeartrate || 0,
+            maxHeartrate: lastActivity.maxHeartrate || 0,
+          }
+        : null,
+      zoneDistribution: data.lastActivityIntensity?.zoneDistribution || null,
+    });
+  } catch (error) {
+    console.error("Recovery status error:", error);
+    res.status(500).json({ error: "Failed to load recovery status" });
+  }
+});
+
+/**
+ * GET /api/balance
+ * Returns training balance score (TSS, CTL, ATL, TSB)
+ */
+router.get("/balance", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const athlete = (req as any).athlete;
+    const data = await getBalanceScore(athlete);
+
+    // Calculate activities count
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const activitiesCount = await Activity.countDocuments({
+      stravaAthleteId: athlete.stravaId,
+      startDate: { $gte: sevenDaysAgo },
+    });
+
+    // Determine trend based on percent of average
+    let trend: "building" | "maintaining" | "recovering" = "maintaining";
+    if (data.percentOfAverage > 110) {
+      trend = "building";
+    } else if (data.percentOfAverage < 90) {
+      trend = "recovering";
+    }
+
+    // Fatigue color
+    const fatigueColorMap = {
+      fresh: "green",
+      optimal: "blue",
+      tired: "yellow",
+      exhausted: "red",
+    };
+
+    // Transform to expected frontend format
+    res.json({
+      weeklyTSS: Math.round(data.weeklyTSS),
+      ctl: data.ctl,
+      atl: data.atl,
+      tsb: data.tsb,
+      fatigueLevel: data.fatigueLevel,
+      fatigueColor: fatigueColorMap[data.fatigueLevel],
+      trend,
+      activitiesCount,
+    });
+  } catch (error) {
+    console.error("Balance score error:", error);
+    res.status(500).json({ error: "Failed to load balance score" });
+  }
+});
+
+/**
+ * GET /api/feedback
+ * Returns AI-generated coaching feedback
+ */
+router.get("/feedback", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const athlete = (req as any).athlete;
+    const forceRefresh = req.query.refresh === "true";
+
+    const feedback = await getAIFeedback(athlete, forceRefresh);
+
+    res.json(feedback);
+  } catch (error) {
+    console.error("Feedback error:", error);
+    res.status(500).json({ error: "Failed to generate feedback" });
   }
 });
 

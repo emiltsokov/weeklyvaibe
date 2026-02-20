@@ -1,5 +1,6 @@
 import { Activity, WeeklySummary, type IAthlete } from "../models/index.js";
 import { StravaService, type StravaActivity } from "./stravaService.js";
+import { calculateActivityTSS } from "./stressService.js";
 
 /**
  * Sync activities for an athlete from Strava
@@ -38,6 +39,13 @@ export async function syncAthleteActivities(
       activityData,
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
+
+    // Calculate TSS if not already set
+    if (!result.calculatedTSS && result.hasHeartrate) {
+      const tssResult = calculateActivityTSS(result, refreshedAthlete);
+      result.calculatedTSS = tssResult.tss;
+      await result.save();
+    }
 
     if (result.createdAt.getTime() === result.updatedAt.getTime()) {
       synced++;

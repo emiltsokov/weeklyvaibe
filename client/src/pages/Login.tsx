@@ -9,6 +9,7 @@ import {
   Alert,
   AlertIcon,
   AlertDescription,
+  Image,
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -39,21 +40,22 @@ export function Login() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={20}>
+    <Box minH="100vh" bg="gray.900" py={20}>
       <Container maxW="md">
         <VStack spacing={8} textAlign="center">
           <VStack spacing={4}>
-            <Heading size="2xl" color="gray.800">
+            <Image src="/logo.png" alt="Weekly Vaibe" />
+            <Heading size="2xl" bgGradient="linear(to-r, brand.400, accent.400)" bgClip="text">
               Weekly Vaibe
             </Heading>
-            <Text fontSize="xl" color="gray.600">
+            <Text fontSize="xl" color="gray.400">
               Smart Training Tracker
             </Text>
           </VStack>
 
-          <Box bg="white" p={8} borderRadius="xl" shadow="lg" w="full">
+          <Box bg="gray.800" p={8} borderRadius="xl" shadow="lg" w="full" borderWidth="1px" borderColor="gray.700">
             <VStack spacing={6}>
-              <Text color="gray.600" fontSize="lg">
+              <Text color="gray.300" fontSize="lg">
                 Connect your Strava account to track your training progress, analyze weekly trends,
                 and optimize your recovery.
               </Text>
@@ -71,9 +73,9 @@ export function Login() {
                 as="a"
                 href="/auth/strava"
                 size="lg"
-                bg="brand.500"
+                bgGradient="linear(to-r, brand.500, accent.500)"
                 color="white"
-                _hover={{ bg: 'brand.600' }}
+                _hover={{ bgGradient: 'linear(to-r, brand.600, accent.600)' }}
                 leftIcon={<StravaIcon boxSize={6} />}
                 w="full"
               >
@@ -82,7 +84,7 @@ export function Login() {
             </VStack>
           </Box>
 
-          <VStack spacing={2} color="gray.500" fontSize="sm">
+          <VStack spacing={2} color="gray.400" fontSize="sm">
             <Text>Features:</Text>
             <Text>📊 Weekly training summaries</Text>
             <Text>📈 Week-over-week comparisons</Text>

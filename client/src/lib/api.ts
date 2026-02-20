@@ -66,6 +66,39 @@ export interface ActivitiesResponse {
   hasMore: boolean;
 }
 
+export interface RecoveryData {
+  status: "ready" | "light" | "rest";
+  message: string;
+  lastActivity: {
+    name: string;
+    date: string;
+    type: string;
+    zone4_5Percentage: number;
+    avgHeartrate: number;
+    maxHeartrate: number;
+  } | null;
+  zoneDistribution: number[] | null;
+}
+
+export interface BalanceData {
+  weeklyTSS: number;
+  ctl: number;
+  atl: number;
+  tsb: number;
+  fatigueLevel: "fresh" | "optimal" | "tired" | "exhausted";
+  fatigueColor: string;
+  trend: "building" | "maintaining" | "recovering";
+  activitiesCount: number;
+}
+
+export interface FeedbackData {
+  message: string;
+  type: "motivation" | "warning" | "advice" | "celebration";
+  cachedAt: string;
+  expiresAt: string;
+  canRefresh: boolean;
+}
+
 // API fetch wrapper
 async function fetchApi<T>(
   endpoint: string,
@@ -133,6 +166,43 @@ export function useSyncMutation() {
       // Invalidate dashboard and activities queries
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["recovery"] });
+      queryClient.invalidateQueries({ queryKey: ["balance"] });
+    },
+  });
+}
+
+export function useRecovery() {
+  return useQuery({
+    queryKey: ["recovery"],
+    queryFn: () => fetchApi<RecoveryData>("/api/recovery"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useBalance() {
+  return useQuery({
+    queryKey: ["balance"],
+    queryFn: () => fetchApi<BalanceData>("/api/balance"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useFeedback() {
+  return useQuery({
+    queryKey: ["feedback"],
+    queryFn: () => fetchApi<FeedbackData>("/api/feedback"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useRefreshFeedback() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => fetchApi<FeedbackData>("/api/feedback?refresh=true"),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["feedback"], data);
     },
   });
 }
