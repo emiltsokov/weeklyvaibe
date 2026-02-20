@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/api';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { Goals } from './pages/Goals';
 import { Spinner, Center } from '@chakra-ui/react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/goals"
+        element={
+          <ProtectedRoute>
+            <Goals />
           </ProtectedRoute>
         }
       />

@@ -216,6 +216,30 @@ export class StravaService {
   }
 
   /**
+   * Get a single activity by ID
+   */
+  static async getActivity(
+    accessToken: string,
+    activityId: number,
+  ): Promise<StravaActivity | null> {
+    try {
+      const response = await stravaApi.get<StravaActivity>(
+        `/activities/${activityId}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Build OAuth authorization URL
    */
   static getAuthorizationUrl(state?: string): string {

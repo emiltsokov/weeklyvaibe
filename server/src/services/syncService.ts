@@ -184,4 +184,72 @@ function getWeeksInRange(
   return weeks;
 }
 
+/**
+ * Sync a single activity from Strava by ID
+ */
+export async function syncSingleActivity(
+  athlete: IAthlete,
+  activityId: number,
+): Promise<any | null> {
+  // Refresh token if needed
+  const refreshedAthlete = await StravaService.refreshTokenIfNeeded(athlete);
+
+  console.log(
+    `Syncing single activity ${activityId} for athlete ${refreshedAthlete.stravaId}`,
+  );
+
+  try {
+    // Fetch the specific activity from Strava
+    const activity = await StravaService.getActivity(
+      refreshedAthlete.accessToken,
+      activityId,
+    );
+
+    if (!activity) {
+      console.log(`Activity ${activityId} not found on Strava`);
+      return null;
+    }
+
+    // Map and upsert
+    const activityData = mapStravaActivity(activity, refreshedAthlete);
+    const result = await Activity.findOneAndUpdate(
+      { stravaActivityId: activity.id },
+      activityData,
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    // Calculate TSS if not already set
+    if (!result.calculatedTSS && result.hasHeartrate) {
+      const tssResult = calculateActivityTSS(result, refreshedAthlete);
+      result.calculatedTSS = tssResult.tss;
+      await result.save();
+    }
+
+    return result;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      console.log(`Activity ${activityId} not found on Strava (404)`);
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Delete an activity from the database
+ */
+export async function deleteActivity(
+  athleteId: number,
+  activityId: number,
+): Promise<boolean> {
+  console.log(`Deleting activity ${activityId} for athlete ${athleteId}`);
+
+  const result = await Activity.deleteOne({
+    stravaAthleteId: athleteId,
+    stravaActivityId: activityId,
+  });
+
+  return result.deletedCount > 0;
+}
+
 export { recalculateWeeklySummaries, getWeeksInRange };

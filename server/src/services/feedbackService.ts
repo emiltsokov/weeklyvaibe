@@ -207,7 +207,7 @@ export async function getAIFeedback(
       type: determineFeedbackType(await buildAthleteContext(athlete)),
       cachedAt: new Date(cached.cachedAt).toISOString(),
       expiresAt: new Date(cached.expiresAt).toISOString(),
-      canRefresh: false,
+      canRefresh: true,
     };
   }
 

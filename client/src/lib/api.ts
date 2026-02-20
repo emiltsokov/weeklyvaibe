@@ -99,6 +99,44 @@ export interface FeedbackData {
   canRefresh: boolean;
 }
 
+export type GoalType = "duration" | "distance";
+export type ActivityFilter = "all" | "run" | "ride" | "swim";
+
+export interface GoalData {
+  id: string;
+  type: GoalType;
+  target: number;
+  unit: string;
+  activityFilter: ActivityFilter;
+  weekStart: string;
+  progress: number;
+  status: "on-track" | "behind" | "overachieving";
+  percentComplete: number;
+  message: string;
+}
+
+export interface CurrentGoalResponse {
+  hasGoal: boolean;
+  goal?: GoalData;
+  burnout?: {
+    warning: boolean;
+    message?: string;
+    consecutiveWeeks?: number;
+  };
+}
+
+export interface GoalHistoryItem {
+  id: string;
+  type: GoalType;
+  target: number;
+  unit: string;
+  activityFilter: ActivityFilter;
+  weekStart: string;
+  progress: number;
+  percentComplete: number;
+  completed: boolean;
+}
+
 // API fetch wrapper
 async function fetchApi<T>(
   endpoint: string,
@@ -201,8 +239,8 @@ export function useRefreshFeedback() {
 
   return useMutation({
     mutationFn: () => fetchApi<FeedbackData>("/api/feedback?refresh=true"),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["feedback"], data);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feedback"] });
     },
   });
 }
@@ -216,6 +254,44 @@ export function useLogout() {
     onSuccess: () => {
       queryClient.clear();
       window.location.href = "/login";
+    },
+  });
+}
+
+export function useCurrentGoal() {
+  return useQuery({
+    queryKey: ["goal", "current"],
+    queryFn: () => fetchApi<CurrentGoalResponse>("/api/goals/current"),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+export function useGoalHistory(weeks = 8) {
+  return useQuery({
+    queryKey: ["goal", "history", weeks],
+    queryFn: () =>
+      fetchApi<{ history: GoalHistoryItem[] }>(
+        `/api/goals/history?weeks=${weeks}`,
+      ),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSetGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      type: GoalType;
+      target: number;
+      activityFilter?: ActivityFilter;
+    }) =>
+      fetchApi<{ success: boolean; goal: GoalData }>("/api/goals", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goal"] });
     },
   });
 }

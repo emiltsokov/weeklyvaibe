@@ -10,6 +10,10 @@ export const config = {
     uri: process.env.MONGODB_URI || "mongodb://localhost:27017/weeklyvaibe",
   },
 
+  redis: {
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+  },
+
   session: {
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
   },
@@ -23,6 +27,8 @@ export const config = {
     tokenUrl: "https://www.strava.com/oauth/token",
     apiBaseUrl: "https://www.strava.com/api/v3",
     scopes: "activity:read_all,profile:read_all",
+    webhookVerifyToken:
+      process.env.STRAVA_WEBHOOK_VERIFY_TOKEN || "weeklyvaibe-webhook-verify",
   },
 
   client: {

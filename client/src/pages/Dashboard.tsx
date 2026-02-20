@@ -37,7 +37,8 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { RepeatIcon } from '@chakra-ui/icons';
-import { useAuth, useDashboard, useSyncMutation, useLogout, useRecovery, useBalance, useFeedback, useRefreshFeedback, type WeekComparison } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, useDashboard, useSyncMutation, useLogout, useRecovery, useBalance, useFeedback, useRefreshFeedback, useCurrentGoal, type WeekComparison } from '../lib/api';
 
 function StatCard({
   label,
@@ -345,6 +346,85 @@ function AICoachWidget({ isLoading }: { isLoading?: boolean }) {
   );
 }
 
+function GoalWidget({ isLoading }: { isLoading?: boolean }) {
+  const navigate = useNavigate();
+  const { data, isLoading: isGoalLoading } = useCurrentGoal();
+
+  const loading = isLoading || isGoalLoading;
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader pb={2}>
+          <Skeleton height="20px" width="100px" />
+        </CardHeader>
+        <CardBody pt={2}>
+          <Skeleton height="50px" />
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (!data?.hasGoal || !data.goal) {
+    return (
+      <Card cursor="pointer" onClick={() => navigate('/goals')} _hover={{ borderColor: 'purple.500' }}>
+        <CardBody>
+          <HStack justify="center" spacing={3} py={2}>
+            <Text fontSize="xl">🎯</Text>
+            <VStack spacing={0} align="start">
+              <Text fontWeight="medium" color="white">Set a Weekly Goal</Text>
+              <Text fontSize="sm" color="gray.400">Track your progress</Text>
+            </VStack>
+          </HStack>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const { goal, burnout } = data;
+
+  const statusConfig = {
+    'on-track': { color: 'green', label: '✨ On Track' },
+    behind: { color: 'yellow', label: '📉 Behind' },
+    overachieving: { color: 'purple', label: '⚡ Crushing It' },
+  };
+
+  const config = statusConfig[goal.status];
+
+  return (
+    <Card cursor="pointer" onClick={() => navigate('/goals')} _hover={{ borderColor: 'purple.500' }}>
+      <CardHeader pb={2}>
+        <HStack justify="space-between">
+          <Heading size="sm">🎯 Weekly Goal</Heading>
+          <Badge colorScheme={config.color} fontSize="xs">{config.label}</Badge>
+        </HStack>
+      </CardHeader>
+      <CardBody pt={2}>
+        {burnout?.warning && (
+          <Badge colorScheme="orange" mb={2} fontSize="xs">⚠️ Burnout Risk</Badge>
+        )}
+        <Box position="relative" bg="gray.700" borderRadius="full" h="24px" overflow="hidden">
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            h="100%"
+            w={`${Math.min(goal.percentComplete, 100)}%`}
+            bgGradient="linear(to-r, purple.400, pink.500)"
+            borderRadius="full"
+            transition="width 0.5s ease"
+          />
+          <Flex position="absolute" top={0} left={0} right={0} bottom={0} align="center" justify="center">
+            <Text fontWeight="bold" fontSize="xs" color="white" textShadow="0 1px 2px rgba(0,0,0,0.5)">
+              {goal.progress} / {goal.target} {goal.unit} ({goal.percentComplete}%)
+            </Text>
+          </Flex>
+        </Box>
+      </CardBody>
+    </Card>
+  );
+}
+
 function WeeklySummarySection({
   weekComparison,
   isLoading,
@@ -506,6 +586,7 @@ function RecentActivitiesSection({
 
 export function Dashboard() {
   const toast = useToast();
+  const navigate = useNavigate();
   const { data: user } = useAuth();
   const { data: dashboard, isLoading: isDashboardLoading } = useDashboard();
   const syncMutation = useSyncMutation();
@@ -546,6 +627,14 @@ export function Dashboard() {
             </HStack>
             <Spacer />
             <HStack spacing={4}>
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="purple"
+                onClick={() => navigate('/goals')}
+              >
+                🎯 Goals
+              </Button>
               <IconButton
                 aria-label="Sync activities"
                 icon={<RepeatIcon />}
@@ -590,6 +679,9 @@ export function Dashboard() {
 
               {/* Training Balance */}
               <BalanceWidget isLoading={isDashboardLoading} />
+
+              {/* Goal Tracker */}
+              <GoalWidget isLoading={isDashboardLoading} />
             </VStack>
           </GridItem>
 

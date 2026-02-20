@@ -7,6 +7,12 @@ import {
   getBalanceScore,
 } from "../services/recoveryService.js";
 import { getAIFeedback } from "../services/feedbackService.js";
+import {
+  getCurrentGoal,
+  setGoal,
+  getGoalHistory,
+  checkBurnoutWarning,
+} from "../services/goalService.js";
 
 const router = Router();
 
@@ -214,5 +220,92 @@ router.get("/feedback", requireAuth, async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to generate feedback" });
   }
 });
+
+/**
+ * GET /api/goals/current
+ * Returns the current week's goal and progress
+ */
+router.get(
+  "/goals/current",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const athlete = (req as any).athlete;
+      const goal = await getCurrentGoal(athlete);
+
+      if (!goal) {
+        return res.json({ hasGoal: false });
+      }
+
+      const burnout = await checkBurnoutWarning(athlete);
+
+      res.json({
+        hasGoal: true,
+        goal,
+        burnout,
+      });
+    } catch (error) {
+      console.error("Get goal error:", error);
+      res.status(500).json({ error: "Failed to load goal" });
+    }
+  },
+);
+
+/**
+ * POST /api/goals
+ * Create or update a weekly goal
+ */
+router.post("/goals", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const athlete = (req as any).athlete;
+    const { type, target, activityFilter } = req.body;
+
+    if (!type || !target) {
+      return res.status(400).json({ error: "Type and target are required" });
+    }
+
+    if (!["duration", "distance"].includes(type)) {
+      return res.status(400).json({ error: "Invalid goal type" });
+    }
+
+    if (typeof target !== "number" || target <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Target must be a positive number" });
+    }
+
+    const goal = await setGoal(athlete, { type, target, activityFilter });
+
+    res.json({
+      success: true,
+      goal,
+    });
+  } catch (error) {
+    console.error("Set goal error:", error);
+    res.status(500).json({ error: "Failed to set goal" });
+  }
+});
+
+/**
+ * GET /api/goals/history
+ * Returns goal history for the past weeks
+ */
+router.get(
+  "/goals/history",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const athlete = (req as any).athlete;
+      const weeks = Math.min(Number(req.query.weeks) || 8, 52);
+
+      const history = await getGoalHistory(athlete, weeks);
+
+      res.json({ history });
+    } catch (error) {
+      console.error("Goal history error:", error);
+      res.status(500).json({ error: "Failed to load goal history" });
+    }
+  },
+);
 
 export { router as apiRouter };

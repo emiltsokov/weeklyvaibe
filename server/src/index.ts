@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import { config } from "./config/index.js";
 import { stravaAuthRouter } from "./auth/stravaAuth.js";
 import { apiRouter } from "./routes/api.js";
+import { webhookRouter } from "./routes/webhook.js";
+import { closeActivityQueue } from "./jobs/activityQueue.js";
 
 const app = express();
 
@@ -32,6 +34,7 @@ app.use(
 // Routes
 app.use("/auth", stravaAuthRouter);
 app.use("/api", apiRouter);
+app.use("/webhook", webhookRouter);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -44,9 +47,34 @@ async function start() {
     await mongoose.connect(config.mongodb.uri);
     console.log("📦 Connected to MongoDB");
 
-    app.listen(config.port, () => {
+    const server = app.listen(config.port, () => {
       console.log(`🚀 Server running on http://localhost:${config.port}`);
+      console.log(
+        `🔔 Webhook endpoint: http://localhost:${config.port}/webhook`,
+      );
     });
+
+    // Graceful shutdown
+    const shutdown = async (signal: string) => {
+      console.log(`\n${signal} received. Shutting down gracefully...`);
+
+      server.close(async () => {
+        console.log("🔌 HTTP server closed");
+
+        try {
+          await closeActivityQueue();
+          await mongoose.connection.close();
+          console.log("📦 MongoDB connection closed");
+          process.exit(0);
+        } catch (err) {
+          console.error("Error during shutdown:", err);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

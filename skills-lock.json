@@ -10,6 +10,11 @@
       "source": "softaworks/agent-toolkit",
       "sourceType": "github",
       "computedHash": "4ce3a30e2ad46fdb79f01e0e44701f961c055da7f25f9418af0283a7ad54b791"
+    },
+    "top-design": {
+      "source": "wondelai/skills",
+      "sourceType": "github",
+      "computedHash": "2e061e177428d6bdfdf52f6f52cf97dcf09556d484f21ae99f818ebd57038057"
     }
   }
 }

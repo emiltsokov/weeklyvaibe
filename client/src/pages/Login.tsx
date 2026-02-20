@@ -40,7 +40,7 @@ export function Login() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.900" py={20}>
+    <Box minH="100vh" bg="black" py={20}>
       <Container maxW="md">
         <VStack spacing={8} textAlign="center">
           <VStack spacing={4}>
