@@ -1,0 +1,53 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: weeklyvaibe-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - weeklyvaibe-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: weeklyvaibe-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/weeklyvaibe
+      - SESSION_SECRET=${SESSION_SECRET}
+      - STRAVA_CLIENT_ID=${STRAVA_CLIENT_ID}
+      - STRAVA_CLIENT_SECRET=${STRAVA_CLIENT_SECRET}
+      - STRAVA_REDIRECT_URI=${STRAVA_REDIRECT_URI:-http://localhost/auth/callback}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost}
+    depends_on:
+      - mongodb
+    networks:
+      - weeklyvaibe-network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: weeklyvaibe-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - weeklyvaibe-network
+
+networks:
+  weeklyvaibe-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
