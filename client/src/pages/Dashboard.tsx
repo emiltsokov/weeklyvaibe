@@ -121,7 +121,7 @@ function RecoveryWidget({ isLoading }: { isLoading?: boolean }) {
     <Card>
       <CardHeader pb={2}>
         <HStack justify="space-between">
-          <Heading size="sm">Recovery Status</Heading>
+          <Heading size="sm">🔋 Recovery Status</Heading>
           <Tooltip label="Learn about Recovery Status">
             <IconButton
               as={RouterLink}
@@ -227,7 +227,7 @@ function BalanceWidget({ isLoading }: { isLoading?: boolean }) {
     <Card>
       <CardHeader pb={2}>
         <HStack justify="space-between">
-          <Heading size="sm">Training Balance</Heading>
+          <Heading size="sm">⚖️ Training Balance</Heading>
           <Tooltip label="Learn about TSS, CTL, ATL & TSB">
             <IconButton
               as={RouterLink}
@@ -327,7 +327,7 @@ function AICoachWidget({ isLoading }: { isLoading?: boolean }) {
   const typeConfig: Record<string, { icon: string; color: string; bg: string }> = {
     motivation: { icon: '💪', color: 'blue', bg: 'blue.900' },
     warning: { icon: '⚠️', color: 'orange', bg: 'orange.900' },
-    advice: { icon: '💡', color: 'purple', bg: 'purple.900' },
+    advice: { icon: '🤖', color: 'purple', bg: 'purple.900' },
     celebration: { icon: '🎉', color: 'green', bg: 'green.900' },
   };
 
@@ -641,7 +641,7 @@ function WeeklySummarySection({
   return (
     <Card>
       <CardHeader pb={2}>
-        <Heading size="md">This Week</Heading>
+        <Heading size="md">📅 This Week</Heading>
         {stats && (
           <Text fontSize="sm" color="gray.400">
             {new Date(stats.weekStart).toLocaleDateString()} -{' '}
@@ -739,7 +739,7 @@ function RecentActivitiesSection({
   return (
     <Card>
       <CardHeader>
-        <Heading size="md">Recent Activities</Heading>
+        <Heading size="md">🏃 Recent Activities</Heading>
       </CardHeader>
       <CardBody pt={0}>
         {isLoading ? (
@@ -876,7 +876,12 @@ export function Dashboard() {
 
               {/* All-time stats */}
               <Card>
-                <CardBody>
+                <CardHeader pb={1}>
+                  <Heading size="sm" color="gray.400" fontWeight="medium">
+                    🏅 All-Time Totals
+                  </Heading>
+                </CardHeader>
+                <CardBody pt={2}>
                   <HStack justify="space-around">
                     <Stat textAlign="center">
                       <StatLabel color="gray.400">Total Activities</StatLabel>

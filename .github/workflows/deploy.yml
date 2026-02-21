@@ -1,0 +1,117 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/weeklyvaibe
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 1. Run full CI first
+  # ──────────────────────────────────────────────
+  ci:
+    name: CI Gate
+    uses: ./.github/workflows/ci.yml
+
+  # ──────────────────────────────────────────────
+  # 2. Build & push Docker images to GHCR
+  # ──────────────────────────────────────────────
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: ci
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - service: server
+            context: weeklyvaibe/server
+            dockerfile: weeklyvaibe/server/Dockerfile
+          - service: client
+            context: weeklyvaibe/client
+            dockerfile: weeklyvaibe/client/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ──────────────────────────────────────────────
+  # 3. Deploy to production server via SSH
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-images
+    environment: production
+    permissions:
+      packages: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: weeklyvaibe/docker-compose.yml
+          target: ~/weeklyvaibe
+          strip_components: 1
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ~/weeklyvaibe
+
+            # Login to GHCR
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull latest images
+            docker compose pull
+
+            # Restart services with zero-downtime
+            docker compose up -d --remove-orphans
+
+            # Clean up old images
+            docker image prune -f
+
+            echo "✅ Deploy complete – $(date)"

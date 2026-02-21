@@ -39,6 +39,7 @@ function NavButton({
 }
 
 export function AppHeader({ syncButton }: { syncButton?: React.ReactNode }) {
+  const navigate = useNavigate();
   const location = useLocation();
   const { data: user } = useAuth();
   const logoutMutation = useLogout();
@@ -47,26 +48,19 @@ export function AppHeader({ syncButton }: { syncButton?: React.ReactNode }) {
     <Box bg="gray.800" shadow="sm" py={3} borderBottom="1px" borderColor="gray.700">
       <Container maxW="6xl">
         <Flex align="center">
-          {/* Brand + Nav */}
-          <HStack spacing={6}>
-            <Heading
-              size="md"
-              bgGradient="linear(to-r, brand.400, accent.400)"
-              bgClip="text"
-              letterSpacing="tight"
-              fontWeight="bold"
-            >
-              Weekly Vaibe
-            </Heading>
-
-            <HStack spacing={1}>
-              <NavButton
-                label="Dashboard"
-                to="/dashboard"
-                isActive={location.pathname === '/dashboard'}
-              />
-            </HStack>
-          </HStack>
+          {/* Brand – click to go to Dashboard */}
+          <Heading
+            size="md"
+            bgGradient="linear(to-r, brand.400, accent.400)"
+            bgClip="text"
+            letterSpacing="tight"
+            fontWeight="bold"
+            cursor="pointer"
+            onClick={() => navigate('/dashboard')}
+            _hover={{ opacity: 0.8 }}
+          >
+            Weekly Vaibe
+          </Heading>
 
           <Spacer />
 

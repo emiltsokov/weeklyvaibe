@@ -26,9 +26,11 @@ describe("AppHeader", () => {
     expect(screen.getByText("Weekly Vaibe")).toBeInTheDocument();
   });
 
-  it("renders Dashboard nav button", async () => {
+  it("brand logo is clickable and navigates to dashboard", async () => {
+    const user = userEvent.setup();
     renderWithProviders(React.createElement(AppHeader));
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    await user.click(screen.getByText("Weekly Vaibe"));
+    expect(window.location.pathname).toBe("/dashboard");
   });
 
   it("renders Weekly Goal nav button", async () => {
@@ -68,13 +70,6 @@ describe("AppHeader", () => {
   it("does not render sync button when not provided", () => {
     renderWithProviders(React.createElement(AppHeader));
     expect(screen.queryByTestId("sync-btn")).not.toBeInTheDocument();
-  });
-
-  it("navigates when Dashboard button is clicked", async () => {
-    const user = userEvent.setup();
-    renderWithProviders(React.createElement(AppHeader));
-    await user.click(screen.getByText("Dashboard"));
-    expect(window.location.pathname).toBe("/dashboard");
   });
 
   it("navigates when Weekly Goal button is clicked", async () => {
