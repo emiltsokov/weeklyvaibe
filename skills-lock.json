@@ -21,6 +21,21 @@
       "sourceType": "github",
       "computedHash": "2e061e177428d6bdfdf52f6f52cf97dcf09556d484f21ae99f818ebd57038057"
     },
+    "vitest": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "669c7275f7e1379b06b2bcfa593603aead4c983b951c7e8edbc09640aa38d0a1"
+    },
+    "vitest-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "computedHash": "40dc892b1458c87e17e81800e70b315d75d9b278cba2bf5ca0b86bbbdd906ab5"
+    },
+    "vitest-mocking": {
+      "source": "alexanderop/workouttracker",
+      "sourceType": "github",
+      "computedHash": "a1f57f7058525d8fb112ae0d03cf994883fc09cbc7ec67e8c9eafea3fb73ed65"
+    },
     "web-typography": {
       "source": "wondelai/skills",
       "sourceType": "github",
