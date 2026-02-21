@@ -45,17 +45,17 @@ export function Login() {
         <VStack spacing={8} textAlign="center">
           <VStack spacing={4}>
             <Image src="/logo.png" alt="Weekly Vaibe" />
-            <Heading size="2xl" bgGradient="linear(to-r, brand.400, accent.400)" bgClip="text">
+            <Heading size="2xl" bgGradient="linear(to-r, brand.400, accent.400)" bgClip="text" letterSpacing="tighter" fontWeight="bold">
               Weekly Vaibe
             </Heading>
-            <Text fontSize="xl" color="gray.400">
+            <Text fontSize="lg" color="gray.400" letterSpacing="wide" fontWeight="medium">
               Smart Training Tracker
             </Text>
           </VStack>
 
           <Box bg="gray.800" p={8} borderRadius="xl" shadow="lg" w="full" borderWidth="1px" borderColor="gray.700">
             <VStack spacing={6}>
-              <Text color="gray.300" fontSize="lg">
+              <Text color="gray.300" fontSize="md" lineHeight="tall">
                 Connect your Strava account to track your training progress, analyze weekly trends,
                 and optimize your recovery.
               </Text>
@@ -85,7 +85,7 @@ export function Login() {
           </Box>
 
           <VStack spacing={2} color="gray.400" fontSize="sm">
-            <Text>Features:</Text>
+            <Text fontWeight="semibold" letterSpacing="wide" textTransform="uppercase" fontSize="xs">Features</Text>
             <Text>📊 Weekly training summaries</Text>
             <Text>📈 Week-over-week comparisons</Text>
             <Text>💪 Stress and recovery tracking</Text>

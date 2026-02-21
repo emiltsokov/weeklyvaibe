@@ -20,15 +20,12 @@ import {
   Skeleton,
   useToast,
   Flex,
-  Spacer,
   Badge,
   Progress,
   Alert,
   AlertIcon,
   AlertTitle,
   AlertDescription,
-  IconButton,
-  Image,
   Grid,
   GridItem,
   Table,
@@ -38,18 +35,15 @@ import {
   Th,
   Td,
 } from '@chakra-ui/react';
-import { ArrowBackIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  useAuth,
   useCurrentGoal,
   useGoalHistory,
   useSetGoal,
-  useLogout,
   type GoalType,
   type ActivityFilter,
 } from '../lib/api';
+import { AppHeader } from '../components/AppHeader';
 
 function GoalForm({ onSuccess }: { onSuccess: () => void }) {
   const [type, setType] = useState<GoalType>('duration');
@@ -436,51 +430,12 @@ function GoalHistoryTable() {
   );
 }
 
-export function Goals() {
-  const navigate = useNavigate();
-  const { data: user } = useAuth();
+export function WeeklyGoal() {
   const { refetch } = useCurrentGoal();
-  const logoutMutation = useLogout();
 
   return (
     <Box minH="100vh" bg="gray.900">
-      {/* Header */}
-      <Box bg="gray.800" shadow="sm" py={4} borderBottom="1px" borderColor="gray.700">
-        <Container maxW="6xl">
-          <Flex align="center">
-            <HStack spacing={3}>
-              <IconButton
-                aria-label="Back to dashboard"
-                icon={<ArrowBackIcon />}
-                variant="ghost"
-                color="white"
-                _hover={{ bg: 'gray.600' }}
-                onClick={() => navigate('/dashboard')}
-              />
-              <Image src="/logo.png" alt="Weekly Vaibe" boxSize="36px" objectFit="contain" />
-              <Heading size="md" bgGradient="linear(to-r, brand.400, accent.400)" bgClip="text">
-                Goals
-              </Heading>
-            </HStack>
-            <Spacer />
-            <HStack spacing={4}>
-              <Text fontSize="sm" color="gray.400">
-                {user?.profile.firstName} {user?.profile.lastName}
-              </Text>
-              <Button
-                size="sm"
-                variant="ghost"
-                color="gray.300"
-                _hover={{ bg: 'gray.600' }}
-                onClick={() => logoutMutation.mutate()}
-                isLoading={logoutMutation.isPending}
-              >
-                Logout
-              </Button>
-            </HStack>
-          </Flex>
-        </Container>
-      </Box>
+      <AppHeader />
 
       {/* Main Content */}
       <Container maxW="6xl" py={8}>

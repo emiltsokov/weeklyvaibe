@@ -23,22 +23,19 @@ import {
   SkeletonText,
   HStack,
   VStack,
-  Avatar,
-  Button,
   IconButton,
   Badge,
   useToast,
   Flex,
-  Spacer,
   Progress,
   CircularProgress,
   CircularProgressLabel,
   Tooltip,
-  Image,
 } from '@chakra-ui/react';
 import { RepeatIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useDashboard, useSyncMutation, useLogout, useRecovery, useBalance, useFeedback, useRefreshFeedback, useCurrentGoal, type WeekComparison } from '../lib/api';
+import { useDashboard, useSyncMutation, useRecovery, useBalance, useFeedback, useRefreshFeedback, useCurrentGoal, type WeekComparison } from '../lib/api';
+import { AppHeader } from '../components/AppHeader';
 
 function StatCard({
   label,
@@ -367,7 +364,7 @@ function GoalWidget({ isLoading }: { isLoading?: boolean }) {
 
   if (!data?.hasGoal || !data.goal) {
     return (
-      <Card cursor="pointer" onClick={() => navigate('/goals')} _hover={{ borderColor: 'purple.500' }}>
+      <Card cursor="pointer" onClick={() => navigate('/weekly-goal')} _hover={{ borderColor: 'purple.500' }}>
         <CardBody>
           <HStack justify="center" spacing={3} py={2}>
             <Text fontSize="xl">🎯</Text>
@@ -392,7 +389,7 @@ function GoalWidget({ isLoading }: { isLoading?: boolean }) {
   const config = statusConfig[goal.status];
 
   return (
-    <Card cursor="pointer" onClick={() => navigate('/goals')} _hover={{ borderColor: 'purple.500' }}>
+    <Card cursor="pointer" onClick={() => navigate('/weekly-goal')} _hover={{ borderColor: 'purple.500' }}>
       <CardHeader pb={2}>
         <HStack justify="space-between">
           <Heading size="sm">🎯 Weekly Goal</Heading>
@@ -586,11 +583,8 @@ function RecentActivitiesSection({
 
 export function Dashboard() {
   const toast = useToast();
-  const navigate = useNavigate();
-  const { data: user } = useAuth();
   const { data: dashboard, isLoading: isDashboardLoading } = useDashboard();
   const syncMutation = useSyncMutation();
-  const logoutMutation = useLogout();
 
   const handleSync = () => {
     syncMutation.mutate(30, {
@@ -615,57 +609,20 @@ export function Dashboard() {
 
   return (
     <Box minH="100vh" bg="gray.900">
-      {/* Header */}
-      <Box bg="gray.800" shadow="sm" py={4} borderBottom="1px" borderColor="gray.700">
-        <Container maxW="6xl">
-          <Flex align="center">
-            <HStack spacing={3}>
-              <Image src="/logo.png" alt="Weekly Vaibe" boxSize="36px" objectFit="contain" />
-              <Heading size="md" bgGradient="linear(to-r, brand.400, accent.400)" bgClip="text">
-                Weekly Vaibe
-              </Heading>
-            </HStack>
-            <Spacer />
-            <HStack spacing={4}>
-              <Button
-                size="sm"
-                variant="outline"
-                colorScheme="purple"
-                onClick={() => navigate('/goals')}
-              >
-                🎯 Goals
-              </Button>
-              <IconButton
-                aria-label="Sync activities"
-                icon={<RepeatIcon />}
-                variant="ghost"
-                isLoading={syncMutation.isPending}
-                onClick={handleSync}
-              />
-              <HStack>
-                <Avatar
-                  size="sm"
-                  name={`${user?.profile.firstName} ${user?.profile.lastName}`}
-                  src={user?.profile.profilePicture}
-                />
-                <VStack align="start" spacing={0} display={{ base: 'none', md: 'flex' }}>
-                  <Text fontSize="sm" fontWeight="medium">
-                    {user?.profile.firstName} {user?.profile.lastName}
-                  </Text>
-                </VStack>
-              </HStack>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => logoutMutation.mutate()}
-                isLoading={logoutMutation.isPending}
-              >
-                Logout
-              </Button>
-            </HStack>
-          </Flex>
-        </Container>
-      </Box>
+      <AppHeader
+        syncButton={
+          <IconButton
+            aria-label="Sync activities"
+            icon={<RepeatIcon />}
+            variant="ghost"
+            color="gray.400"
+            _hover={{ bg: 'whiteAlpha.100', color: 'white' }}
+            size="sm"
+            isLoading={syncMutation.isPending}
+            onClick={handleSync}
+          />
+        }
+      />
 
       {/* Main Content */}
       <Container maxW="6xl" py={8}>
