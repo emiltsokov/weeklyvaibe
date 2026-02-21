@@ -84,7 +84,7 @@ describe("AppHeader", () => {
     renderWithProviders(React.createElement(AppHeader));
     const logoutBtn = screen.getByText("Logout");
     expect(logoutBtn).toBeInTheDocument();
-    // Just verify logout button exists and is clickable; 
+    // Just verify logout button exists and is clickable;
     // actual redirect tested in api hooks test
   });
 });

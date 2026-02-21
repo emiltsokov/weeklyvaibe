@@ -70,9 +70,7 @@ describe("API hooks", () => {
 
     it("handles 401 error", async () => {
       worker.use(
-        http.get("/auth/me", () =>
-          HttpResponse.json({}, { status: 401 }),
-        ),
+        http.get("/auth/me", () => HttpResponse.json({}, { status: 401 })),
       );
       const { result } = renderHook(() => useAuth(), {
         wrapper: createWrapper(),
@@ -226,10 +224,7 @@ describe("API hooks", () => {
     it("throws with server error message", async () => {
       worker.use(
         http.get("/api/dashboard", () =>
-          HttpResponse.json(
-            { message: "Server error" },
-            { status: 500 },
-          ),
+          HttpResponse.json({ message: "Server error" }, { status: 500 }),
         ),
       );
       const { result } = renderHook(() => useDashboard(), {
@@ -241,11 +236,13 @@ describe("API hooks", () => {
 
     it("falls back to default error message", async () => {
       worker.use(
-        http.get("/api/dashboard", () =>
-          new HttpResponse("not json", {
-            status: 500,
-            headers: { "Content-Type": "text/plain" },
-          }),
+        http.get(
+          "/api/dashboard",
+          () =>
+            new HttpResponse("not json", {
+              status: 500,
+              headers: { "Content-Type": "text/plain" },
+            }),
         ),
       );
       const { result } = renderHook(() => useDashboard(), {
