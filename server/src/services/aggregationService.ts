@@ -306,3 +306,82 @@ export {
   type DashboardData,
   type WeekComparison,
 };
+
+/**
+ * Get weekly trend data for the past N weeks (including current)
+ */
+export async function getWeeklyTrend(
+  stravaAthleteId: number,
+  weeks = 6,
+): Promise<
+  Array<{
+    weekStart: string;
+    weekLabel: string;
+    distance: number;
+    duration: number;
+    elevation: number;
+    activities: number;
+    sufferScore: number | null;
+  }>
+> {
+  const currentWeek = getCurrentWeekBounds();
+  const result: Array<{
+    weekStart: string;
+    weekLabel: string;
+    distance: number;
+    duration: number;
+    elevation: number;
+    activities: number;
+    sufferScore: number | null;
+  }> = [];
+
+  for (let i = weeks - 1; i >= 0; i--) {
+    const weekStart = new Date(currentWeek.start);
+    weekStart.setDate(weekStart.getDate() - i * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    let summary = await WeeklySummary.findOne({
+      stravaAthleteId,
+      weekStart,
+    });
+
+    // For current week, calculate from activities if no cached summary
+    if (!summary && i === 0) {
+      const activities = await Activity.find({
+        stravaAthleteId,
+        startDate: { $gte: weekStart, $lte: weekEnd },
+      });
+
+      const agg = aggregateActivities(activities, weekStart, weekEnd);
+      summary = {
+        totalDistance: agg.totalDistance,
+        totalDuration: agg.totalDuration,
+        totalElevation: agg.totalElevation,
+        totalActivities: agg.totalActivities,
+        totalSufferScore: agg.totalSufferScore,
+      } as any;
+    }
+
+    const month = weekStart.toLocaleString("en", { month: "short" });
+    const day = weekStart.getDate();
+    const label = i === 0 ? "This Week" : `${month} ${day}`;
+
+    result.push({
+      weekStart: weekStart.toISOString(),
+      weekLabel: label,
+      distance: summary
+        ? Math.round(((summary.totalDistance || 0) / 1000) * 100) / 100
+        : 0,
+      duration: summary
+        ? Math.round(((summary.totalDuration || 0) / 3600) * 100) / 100
+        : 0,
+      elevation: summary ? Math.round(summary.totalElevation || 0) : 0,
+      activities: summary?.totalActivities || 0,
+      sufferScore: summary?.totalSufferScore || null,
+    });
+  }
+
+  return result;
+}

@@ -188,3 +188,14 @@ export const mockGoalHistory = {
     },
   ],
 };
+
+export const mockWeeklyTrend = {
+  trend: [
+    { weekStart: "2026-01-12T00:00:00.000Z", weekLabel: "Jan 12", distance: 30.0, duration: 4.0, elevation: 200, activities: 3, sufferScore: 180 },
+    { weekStart: "2026-01-19T00:00:00.000Z", weekLabel: "Jan 19", distance: 35.5, duration: 4.5, elevation: 280, activities: 4, sufferScore: 220 },
+    { weekStart: "2026-01-26T00:00:00.000Z", weekLabel: "Jan 26", distance: 28.0, duration: 3.8, elevation: 150, activities: 3, sufferScore: 160 },
+    { weekStart: "2026-02-02T00:00:00.000Z", weekLabel: "Feb 2", distance: 40.0, duration: 5.0, elevation: 320, activities: 5, sufferScore: 260 },
+    { weekStart: "2026-02-09T00:00:00.000Z", weekLabel: "Feb 9", distance: 38.0, duration: 4.8, elevation: 300, activities: 4, sufferScore: 234 },
+    { weekStart: "2026-02-16T00:00:00.000Z", weekLabel: "This Week", distance: 42.5, duration: 5.2, elevation: 350, activities: 4, sufferScore: 340 },
+  ],
+};

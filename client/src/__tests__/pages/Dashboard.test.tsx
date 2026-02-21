@@ -194,6 +194,61 @@ describe("Dashboard", () => {
     });
   });
 
+  describe("6-week trend widget", () => {
+    it("shows trend heading", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        expect(screen.getByText("📊 6-Week Trend")).toBeInTheDocument();
+      });
+    });
+
+    it("shows distance and duration labels", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        expect(screen.getByText("Distance (km)")).toBeInTheDocument();
+        expect(screen.getByText("Duration (hrs)")).toBeInTheDocument();
+      });
+    });
+
+    it("shows vs avg badges", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const avgBadges = screen.getAllByText(/vs avg/);
+        expect(avgBadges.length).toBe(2);
+      });
+    });
+
+    it("shows average stats in footer", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        expect(screen.getByText("avg km/wk")).toBeInTheDocument();
+        expect(screen.getByText("avg hrs/wk")).toBeInTheDocument();
+        expect(screen.getByText("avg acts/wk")).toBeInTheDocument();
+      });
+    });
+
+    it("shows This Week label", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        expect(screen.getAllByText("This Week").length).toBeGreaterThanOrEqual(1);
+      });
+    });
+
+    it("shows empty state when no trend data", async () => {
+      worker.use(
+        http.get("/api/weekly-trend", () =>
+          HttpResponse.json({ trend: [] }),
+        ),
+      );
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        expect(
+          screen.getByText(/No weekly data available yet/),
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
   describe("recovery widget states", () => {
     it("shows light day status", async () => {
       worker.use(
@@ -369,6 +424,50 @@ describe("Dashboard", () => {
       // Skeletons should be visible when data is loading
       const skeletons = document.querySelectorAll(".chakra-skeleton");
       expect(skeletons.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("vocabulary links", () => {
+    it("has info link on Recovery Status heading", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const link = screen.getByLabelText("Learn about Recovery Status");
+        expect(link).toBeInTheDocument();
+        expect(link.closest("a")).toHaveAttribute("href", "/vocabulary#recovery-status");
+      });
+    });
+
+    it("has info link on Training Balance heading", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const link = screen.getByLabelText("Learn about Training Balance");
+        expect(link).toBeInTheDocument();
+        expect(link.closest("a")).toHaveAttribute("href", "/vocabulary#tsb");
+      });
+    });
+
+    it("links Weekly TSS label to vocabulary", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const tssLink = screen.getByText("Weekly TSS");
+        expect(tssLink.closest("a")).toHaveAttribute("href", "/vocabulary#tss");
+      });
+    });
+
+    it("links Form (TSB) label to vocabulary", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const tsbLink = screen.getByText("Form (TSB)");
+        expect(tsbLink.closest("a")).toHaveAttribute("href", "/vocabulary#tsb");
+      });
+    });
+
+    it("links Total Suffer Score to vocabulary", async () => {
+      renderWithProviders(React.createElement(Dashboard));
+      await waitFor(() => {
+        const sufferLink = screen.getByText("Total Suffer Score");
+        expect(sufferLink.closest("a")).toHaveAttribute("href", "/vocabulary#suffer-score");
+      });
     });
   });
 });

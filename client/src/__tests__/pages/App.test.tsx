@@ -75,6 +75,16 @@ describe("App routing", () => {
     });
   });
 
+  it("shows vocabulary page when authenticated", async () => {
+    window.history.pushState({}, "", "/vocabulary");
+    renderWithProviders(React.createElement(App));
+    await waitFor(() => {
+      expect(
+        screen.getByText("📖 Training Vocabulary"),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("shows loading spinner during auth check", () => {
     worker.use(
       http.get("/auth/me", () => {

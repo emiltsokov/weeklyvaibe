@@ -36,6 +36,11 @@ describe("AppHeader", () => {
     expect(screen.getByText("Weekly Goal")).toBeInTheDocument();
   });
 
+  it("renders Vocabulary nav button", async () => {
+    renderWithProviders(React.createElement(AppHeader));
+    expect(screen.getByText("Vocabulary")).toBeInTheDocument();
+  });
+
   it("renders Logout button", async () => {
     renderWithProviders(React.createElement(AppHeader));
     expect(screen.getByText("Logout")).toBeInTheDocument();
@@ -77,6 +82,13 @@ describe("AppHeader", () => {
     renderWithProviders(React.createElement(AppHeader));
     await user.click(screen.getByText("Weekly Goal"));
     expect(window.location.pathname).toBe("/weekly-goal");
+  });
+
+  it("navigates when Vocabulary button is clicked", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(React.createElement(AppHeader));
+    await user.click(screen.getByText("Vocabulary"));
+    expect(window.location.pathname).toBe("/vocabulary");
   });
 
   it("calls logout on Logout click", async () => {

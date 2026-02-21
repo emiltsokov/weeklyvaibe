@@ -77,6 +77,11 @@ export function AppHeader({ syncButton }: { syncButton?: React.ReactNode }) {
               to="/weekly-goal"
               isActive={location.pathname === '/weekly-goal'}
             />
+            <NavButton
+              label="Vocabulary"
+              to="/vocabulary"
+              isActive={location.pathname === '/vocabulary'}
+            />
             {syncButton}
             <HStack spacing={2}>
               <Avatar

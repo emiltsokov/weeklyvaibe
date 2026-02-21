@@ -137,6 +137,16 @@ export interface GoalHistoryItem {
   completed: boolean;
 }
 
+export interface WeeklyTrendItem {
+  weekStart: string;
+  weekLabel: string;
+  distance: number;
+  duration: number;
+  elevation: number;
+  activities: number;
+  sufferScore: number | null;
+}
+
 // API fetch wrapper
 async function fetchApi<T>(
   endpoint: string,
@@ -223,6 +233,17 @@ export function useBalance() {
     queryKey: ["balance"],
     queryFn: () => fetchApi<BalanceData>("/api/balance"),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useWeeklyTrend(weeks = 6) {
+  return useQuery({
+    queryKey: ["weekly-trend", weeks],
+    queryFn: () =>
+      fetchApi<{ trend: WeeklyTrendItem[] }>(
+        `/api/weekly-trend?weeks=${weeks}`,
+      ),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

@@ -8,6 +8,7 @@ import {
   mockFeedback,
   mockGoalCurrent,
   mockGoalHistory,
+  mockWeeklyTrend,
 } from "./helpers";
 
 export const handlers = [
@@ -31,6 +32,7 @@ export const handlers = [
   ),
   http.get("/api/recovery", () => HttpResponse.json(mockRecovery)),
   http.get("/api/balance", () => HttpResponse.json(mockBalance)),
+  http.get("/api/weekly-trend", () => HttpResponse.json(mockWeeklyTrend)),
   http.get("/api/feedback", () => HttpResponse.json(mockFeedback)),
   http.get("/api/goals/current", () => HttpResponse.json(mockGoalCurrent)),
   http.get("/api/goals/history", () => HttpResponse.json(mockGoalHistory)),

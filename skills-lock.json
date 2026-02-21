@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "cycling-training": {
+      "source": "disco-trooper/skills",
+      "sourceType": "github",
+      "computedHash": "96c32292e82f182f604eef128b857405435cf5fe444afdaf9839f3d88f671a23"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",

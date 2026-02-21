@@ -1,6 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { Athlete, Activity } from "../models/index.js";
-import { getDashboardData } from "../services/aggregationService.js";
+import {
+  getDashboardData,
+  getWeeklyTrend,
+} from "../services/aggregationService.js";
 import { syncAthleteActivities } from "../services/syncService.js";
 import {
   getRecoveryStatus,
@@ -152,6 +155,29 @@ router.get("/recovery", requireAuth, async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to load recovery status" });
   }
 });
+
+/**
+ * GET /api/weekly-trend
+ * Returns weekly stats for the past N weeks for trend comparison
+ */
+router.get(
+  "/weekly-trend",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const athlete = (req as any).athlete;
+      const weeks = Math.min(
+        Math.max(parseInt(String(req.query.weeks)) || 6, 2),
+        12,
+      );
+      const trend = await getWeeklyTrend(athlete.stravaId, weeks);
+      res.json({ trend });
+    } catch (error) {
+      console.error("Weekly trend error:", error);
+      res.status(500).json({ error: "Failed to load weekly trend" });
+    }
+  },
+);
 
 /**
  * GET /api/balance

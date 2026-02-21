@@ -3,6 +3,7 @@ import { useAuth } from './lib/api';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { WeeklyGoal } from './pages/WeeklyGoal';
+import { Vocabulary } from './pages/Vocabulary';
 import { Spinner, Center } from '@chakra-ui/react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -40,6 +41,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <WeeklyGoal />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vocabulary"
+        element={
+          <ProtectedRoute>
+            <Vocabulary />
           </ProtectedRoute>
         }
       />

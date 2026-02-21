@@ -31,10 +31,11 @@ import {
   CircularProgress,
   CircularProgressLabel,
   Tooltip,
+  Divider,
 } from '@chakra-ui/react';
-import { RepeatIcon } from '@chakra-ui/icons';
-import { useNavigate } from 'react-router-dom';
-import { useDashboard, useSyncMutation, useRecovery, useBalance, useFeedback, useRefreshFeedback, useCurrentGoal, type WeekComparison } from '../lib/api';
+import { RepeatIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useDashboard, useSyncMutation, useRecovery, useBalance, useFeedback, useRefreshFeedback, useCurrentGoal, useWeeklyTrend, type WeekComparison } from '../lib/api';
 import { AppHeader } from '../components/AppHeader';
 
 function StatCard({
@@ -119,7 +120,21 @@ function RecoveryWidget({ isLoading }: { isLoading?: boolean }) {
   return (
     <Card>
       <CardHeader pb={2}>
-        <Heading size="sm">Recovery Status</Heading>
+        <HStack justify="space-between">
+          <Heading size="sm">Recovery Status</Heading>
+          <Tooltip label="Learn about Recovery Status">
+            <IconButton
+              as={RouterLink}
+              to="/vocabulary#recovery-status"
+              aria-label="Learn about Recovery Status"
+              icon={<InfoOutlineIcon />}
+              size="xs"
+              variant="ghost"
+              color="gray.500"
+              _hover={{ color: 'green.300' }}
+            />
+          </Tooltip>
+        </HStack>
       </CardHeader>
       <CardBody pt={2}>
         <Box bg={config.bg} borderRadius="md" p={4} mb={3} borderWidth="1px" borderColor={`${config.color}.700`}>
@@ -139,8 +154,8 @@ function RecoveryWidget({ isLoading }: { isLoading?: boolean }) {
               Last Activity: {recovery.lastActivity.name}
             </Text>
             {recovery.lastActivity.zone4_5Percentage > 0 && (
-              <Tooltip label="Time spent in Zone 4-5 (high intensity)">
-                <Box>
+                <Tooltip label="Time spent in Zone 4-5 (high intensity) — click to learn more">
+                <Box as={RouterLink} to="/vocabulary#zone-distribution" display="block" _hover={{ opacity: 0.8 }}>
                   <HStack justify="space-between" mb={1}>
                     <Text fontSize="xs" color="gray.400">High Intensity</Text>
                     <Text fontSize="xs" fontWeight="medium" color="red.400">
@@ -211,7 +226,21 @@ function BalanceWidget({ isLoading }: { isLoading?: boolean }) {
   return (
     <Card>
       <CardHeader pb={2}>
-        <Heading size="sm">Training Balance</Heading>
+        <HStack justify="space-between">
+          <Heading size="sm">Training Balance</Heading>
+          <Tooltip label="Learn about TSS, CTL, ATL & TSB">
+            <IconButton
+              as={RouterLink}
+              to="/vocabulary#tsb"
+              aria-label="Learn about Training Balance"
+              icon={<InfoOutlineIcon />}
+              size="xs"
+              variant="ghost"
+              color="gray.500"
+              _hover={{ color: 'blue.300' }}
+            />
+          </Tooltip>
+        </HStack>
       </CardHeader>
       <CardBody pt={2}>
         <Grid templateColumns="1fr 1fr" gap={4}>
@@ -227,7 +256,15 @@ function BalanceWidget({ isLoading }: { isLoading?: boolean }) {
                 {Math.round(balance?.weeklyTSS || 0)}
               </CircularProgressLabel>
             </CircularProgress>
-            <Text fontSize="xs" color="gray.400" mt={1}>
+            <Text
+              as={RouterLink}
+              to="/vocabulary#tss"
+              fontSize="xs"
+              color="gray.400"
+              mt={1}
+              _hover={{ color: 'orange.300', textDecoration: 'underline' }}
+              cursor="pointer"
+            >
               Weekly TSS
             </Text>
           </Box>
@@ -244,7 +281,15 @@ function BalanceWidget({ isLoading }: { isLoading?: boolean }) {
                 {balance?.tsb?.toFixed(0) || 0}
               </CircularProgressLabel>
             </CircularProgress>
-            <Text fontSize="xs" color="gray.400" mt={1}>
+            <Text
+              as={RouterLink}
+              to="/vocabulary#tsb"
+              fontSize="xs"
+              color="gray.400"
+              mt={1}
+              _hover={{ color: 'blue.300', textDecoration: 'underline' }}
+              cursor="pointer"
+            >
               Form (TSB)
             </Text>
           </Box>
@@ -261,10 +306,10 @@ function BalanceWidget({ isLoading }: { isLoading?: boolean }) {
 
         <HStack justify="space-between" mt={3} fontSize="xs" color="gray.400">
           <Tooltip label="Chronic Training Load (6-week average)">
-            <Text>CTL: {balance?.ctl?.toFixed(0) || 0}</Text>
+            <Text as={RouterLink} to="/vocabulary#ctl" _hover={{ color: 'purple.300' }}>CTL: {balance?.ctl?.toFixed(0) || 0}</Text>
           </Tooltip>
           <Tooltip label="Acute Training Load (7-day total)">
-            <Text>ATL: {balance?.atl?.toFixed(0) || 0}</Text>
+            <Text as={RouterLink} to="/vocabulary#atl" _hover={{ color: 'yellow.300' }}>ATL: {balance?.atl?.toFixed(0) || 0}</Text>
           </Tooltip>
           <Text>{balance?.activitiesCount || 0} activities</Text>
         </HStack>
@@ -422,6 +467,167 @@ function GoalWidget({ isLoading }: { isLoading?: boolean }) {
   );
 }
 
+function WeeklyTrendWidget({ isLoading: parentLoading }: { isLoading?: boolean }) {
+  const { data, isLoading: isTrendLoading } = useWeeklyTrend(6);
+
+  const loading = parentLoading || isTrendLoading;
+  const trend = data?.trend || [];
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader pb={2}>
+          <Skeleton height="20px" width="160px" />
+        </CardHeader>
+        <CardBody pt={2}>
+          <Skeleton height="120px" />
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (trend.length === 0) {
+    return (
+      <Card>
+        <CardBody>
+          <Text color="gray.400" fontSize="sm" textAlign="center">
+            No weekly data available yet. Sync more activities!
+          </Text>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  // Find max values for bar scaling
+  const maxDistance = Math.max(...trend.map((w) => w.distance), 1);
+  const maxDuration = Math.max(...trend.map((w) => w.duration), 1);
+
+  // Average stats
+  const avgDistance = trend.reduce((s, w) => s + w.distance, 0) / trend.length;
+  const avgDuration = trend.reduce((s, w) => s + w.duration, 0) / trend.length;
+  const avgActivities = trend.reduce((s, w) => s + w.activities, 0) / trend.length;
+
+  // Current week vs average
+  const current = trend[trend.length - 1];
+  const distVsAvg = avgDistance > 0 ? Math.round(((current.distance - avgDistance) / avgDistance) * 100) : 0;
+  const durVsAvg = avgDuration > 0 ? Math.round(((current.duration - avgDuration) / avgDuration) * 100) : 0;
+
+  return (
+    <Card>
+      <CardHeader pb={2}>
+        <Heading size="sm">📊 6-Week Trend</Heading>
+        <Text fontSize="xs" color="gray.400">
+          How this week compares to previous weeks
+        </Text>
+      </CardHeader>
+      <CardBody pt={2}>
+        {/* Distance bar chart */}
+        <Box mb={4}>
+          <HStack justify="space-between" mb={2}>
+            <Text fontSize="xs" color="gray.400" fontWeight="semibold">
+              Distance (km)
+            </Text>
+            <Badge colorScheme={distVsAvg >= 0 ? 'green' : 'red'} fontSize="2xs">
+              {distVsAvg >= 0 ? '+' : ''}{distVsAvg}% vs avg
+            </Badge>
+          </HStack>
+          <HStack spacing={1} align="end" h="60px">
+            {trend.map((week, i) => {
+              const pct = (week.distance / maxDistance) * 100;
+              const isCurrent = i === trend.length - 1;
+              return (
+                <Tooltip
+                  key={week.weekStart}
+                  label={`${week.weekLabel}: ${week.distance} km`}
+                >
+                  <Box
+                    flex={1}
+                    h={`${Math.max(pct, 4)}%`}
+                    bg={isCurrent ? 'purple.400' : 'gray.600'}
+                    borderRadius="sm"
+                    transition="all 0.3s"
+                    _hover={{ bg: isCurrent ? 'purple.300' : 'gray.500' }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </HStack>
+          <HStack spacing={1} mt={1}>
+            {trend.map((week, i) => (
+              <Text
+                key={week.weekStart}
+                flex={1}
+                fontSize="2xs"
+                color={i === trend.length - 1 ? 'purple.300' : 'gray.500'}
+                textAlign="center"
+                noOfLines={1}
+              >
+                {week.weekLabel}
+              </Text>
+            ))}
+          </HStack>
+        </Box>
+
+        {/* Duration bar chart */}
+        <Box mb={4}>
+          <HStack justify="space-between" mb={2}>
+            <Text fontSize="xs" color="gray.400" fontWeight="semibold">
+              Duration (hrs)
+            </Text>
+            <Badge colorScheme={durVsAvg >= 0 ? 'green' : 'red'} fontSize="2xs">
+              {durVsAvg >= 0 ? '+' : ''}{durVsAvg}% vs avg
+            </Badge>
+          </HStack>
+          <HStack spacing={1} align="end" h="60px">
+            {trend.map((week, i) => {
+              const pct = (week.duration / maxDuration) * 100;
+              const isCurrent = i === trend.length - 1;
+              return (
+                <Tooltip
+                  key={week.weekStart}
+                  label={`${week.weekLabel}: ${week.duration} hrs`}
+                >
+                  <Box
+                    flex={1}
+                    h={`${Math.max(pct, 4)}%`}
+                    bg={isCurrent ? 'blue.400' : 'gray.600'}
+                    borderRadius="sm"
+                    transition="all 0.3s"
+                    _hover={{ bg: isCurrent ? 'blue.300' : 'gray.500' }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </HStack>
+        </Box>
+
+        {/* Average summary */}
+        <Divider borderColor="gray.700" mb={3} />
+        <HStack justify="space-around" fontSize="xs" color="gray.400">
+          <VStack spacing={0}>
+            <Text fontWeight="bold" color="white" fontSize="sm">
+              {avgDistance.toFixed(1)}
+            </Text>
+            <Text>avg km/wk</Text>
+          </VStack>
+          <VStack spacing={0}>
+            <Text fontWeight="bold" color="white" fontSize="sm">
+              {avgDuration.toFixed(1)}
+            </Text>
+            <Text>avg hrs/wk</Text>
+          </VStack>
+          <VStack spacing={0}>
+            <Text fontWeight="bold" color="white" fontSize="sm">
+              {avgActivities.toFixed(1)}
+            </Text>
+            <Text>avg acts/wk</Text>
+          </VStack>
+        </HStack>
+      </CardBody>
+    </Card>
+  );
+}
+
 function WeeklySummarySection({
   weekComparison,
   isLoading,
@@ -475,11 +681,26 @@ function WeeklySummarySection({
         </Grid>
 
         {stats?.totalSufferScore && (
-          <Box mt={4} p={4} bg="accent.900" borderRadius="md" borderWidth="1px" borderColor="accent.700">
+          <Box
+            as={RouterLink}
+            to="/vocabulary#suffer-score"
+            display="block"
+            mt={4}
+            p={4}
+            bg="accent.900"
+            borderRadius="md"
+            borderWidth="1px"
+            borderColor="accent.700"
+            _hover={{ borderColor: 'accent.500', textDecoration: 'none' }}
+            transition="border-color 0.2s"
+          >
             <HStack justify="space-between">
-              <Text fontWeight="medium" color="accent.300">
-                Total Suffer Score
-              </Text>
+              <HStack spacing={2}>
+                <Text fontWeight="medium" color="accent.300">
+                  Total Suffer Score
+                </Text>
+                <InfoOutlineIcon boxSize={3} color="accent.500" />
+              </HStack>
               <Badge colorScheme="purple" fontSize="lg" px={3} py={1}>
                 {stats.totalSufferScore}
               </Badge>
@@ -535,7 +756,16 @@ function RecentActivitiesSection({
                 <Th>Type</Th>
                 <Th isNumeric>Distance</Th>
                 <Th isNumeric>Duration</Th>
-                <Th isNumeric>Effort</Th>
+                <Th isNumeric>
+                  <HStack justify="flex-end" spacing={1}>
+                    <Text>Effort</Text>
+                    <Tooltip label="Learn about Suffer Score">
+                      <Box as={RouterLink} to="/vocabulary#suffer-score">
+                        <InfoOutlineIcon boxSize={3} color="gray.500" _hover={{ color: 'red.300' }} />
+                      </Box>
+                    </Tooltip>
+                  </HStack>
+                </Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -564,7 +794,11 @@ function RecentActivitiesSection({
                   </Td>
                   <Td isNumeric>
                     {activity.sufferScore ? (
-                      <Badge colorScheme="orange">{activity.sufferScore}</Badge>
+                      <Badge colorScheme={
+                        activity.sufferScore > 200 ? 'red' :
+                        activity.sufferScore > 100 ? 'orange' :
+                        activity.sufferScore > 50 ? 'blue' : 'green'
+                      }>{activity.sufferScore}</Badge>
                     ) : (
                       <Text color="gray.400" fontSize="xs">
                         -
@@ -639,16 +873,6 @@ export function Dashboard() {
 
               {/* Goal Tracker */}
               <GoalWidget isLoading={isDashboardLoading} />
-            </VStack>
-          </GridItem>
-
-          <GridItem>
-            <VStack spacing={6} align="stretch">
-              {/* Recovery Status */}
-              <RecoveryWidget isLoading={isDashboardLoading} />
-
-              {/* AI Coach */}
-              <AICoachWidget isLoading={isDashboardLoading} />
 
               {/* All-time stats */}
               <Card>
@@ -671,6 +895,19 @@ export function Dashboard() {
                   </HStack>
                 </CardBody>
               </Card>
+            </VStack>
+          </GridItem>
+
+          <GridItem>
+            <VStack spacing={6} align="stretch">
+              {/* Recovery Status */}
+              <RecoveryWidget isLoading={isDashboardLoading} />
+
+              {/* AI Coach */}
+              <AICoachWidget isLoading={isDashboardLoading} />
+
+              {/* 6-Week Trend */}
+              <WeeklyTrendWidget isLoading={isDashboardLoading} />
             </VStack>
           </GridItem>
 
