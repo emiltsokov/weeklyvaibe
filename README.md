@@ -115,3 +115,21 @@ weeklyvaibe/
 ## License
 
 MIT
+
+## Screenshots
+
+### Login
+
+![Login page](localhost_5173_login.png)
+
+### Dashboard
+
+![Dashboard](localhost_5173_dashboard.png)
+
+### Weekly Goal
+
+![Weekly goal](localhost_5173_weeklygoal.png)
+
+### Vocabulary
+
+![Vocabulary](localhost_5173_vocabulary.png)
